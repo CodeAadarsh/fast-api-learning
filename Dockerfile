@@ -12,4 +12,4 @@ COPY . .
 
 RUN uv sync 
 
-RUN ["uv","run","uvicorn","main:app", "--host","0.0.0.0"]
+CMD ["uv","run","uvicorn","main:app", "--host","0.0.0.0"]
