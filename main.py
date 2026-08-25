@@ -1,8 +1,11 @@
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,HTTPException,status
 from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 
 templates = Jinja2Templates(directory ="templates")
-post: list[dict] = [
+posts: list[dict] = [
     {
         "id": 1,
         "author": "Corey Schafer",
@@ -30,12 +33,24 @@ app = FastAPI()
 @app.get("/", include_in_schema=False)
 @app.get("/post",include_in_schema=False)
 def home(request:Request):
-    return templates.TemplateResponse(request,"home.html",{"post":post,"title":"Homepage"})
+    return templates.TemplateResponse(request,"home.html",{"post":posts,"title":"Homepage"})
 
 @app.get("/api/post")
 def get_post():
+    return posts
+
+@app.get("/api/post/{post_id}")
+def get_post(post_id: int):
+    post = next((p for p in posts if p["id"] == post_id),None)
+    print(post)
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found!")
     return post
 
-@app.get(f"/api/post/{post_id}")
-def get_post(post_id):
-    for p
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request:Request,exception:RequestValidationError):
+    if request.url.path.startswith("/api"):
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": exception.errors()
+        })
