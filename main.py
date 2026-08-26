@@ -3,7 +3,8 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-
+from schemas import PostCreate,PostResponse 
+from datetime import datetime
 templates = Jinja2Templates(directory ="templates")
 posts: list[dict] = [
     {
@@ -35,17 +36,31 @@ app = FastAPI()
 def home(request:Request):
     return templates.TemplateResponse(request,"home.html",{"post":posts,"title":"Homepage"})
 
-@app.get("/api/post")
+@app.get("/api/post",response_model=list[PostResponse])
 def get_post():
     return posts
 
-@app.get("/api/post/{post_id}")
+@app.get("/api/post/{post_id}", response_model=PostResponse)
 def get_post(post_id: int):
     post = next((p for p in posts if p["id"] == post_id),None)
     print(post)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found!")
     return post
+
+@app.post("/api/post",response_model=PostCreate,status_code=status.HTTP_201_CREATED)
+def create_post(post: PostCreate):
+    new_id = max(p["id"] for p in posts)+ 1 if posts else 1
+    new_post = {
+        "id":new_id,
+        "author": post.author,
+        "title": post.title,
+        "content": post.content,
+        "date_posted": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    posts.append(new_post)
+    return new_post
+
 
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request:Request,exception:RequestValidationError):
