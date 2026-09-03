@@ -41,7 +41,7 @@ def get_post():
     return posts
 
 @app.get("/api/post/{post_id}", response_model=PostResponse)
-def get_post(post_id: int):
+def get_post_by_id(post_id: int):
     post = next((p for p in posts if p["id"] == post_id),None)
     print(post)
     if post is None:
