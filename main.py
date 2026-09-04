@@ -1,10 +1,13 @@
-from fastapi import FastAPI,Request,HTTPException,status
+from fastapi import FastAPI,Request,HTTPException,status,Depends
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from schemas import PostCreate,PostResponse 
 from datetime import datetime
+from typing import Annotated
+
+
 templates = Jinja2Templates(directory ="templates")
 posts: list[dict] = [
     {
